@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Study Statistics</h2>
+    
+    {% if not has_data %}
+    <div class="alert alert-info text-center">
+        No study data available yet. Start studying to see your statistics!
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Total Study Time</h3>
+                    <p class="display-4">{{ total_time }} minutes</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Subject Distribution</h3>
+                    <canvas id="subjectChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Activity Distribution</h3>
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Recent Activity</h3>
+                    <div class="list-group">
+                        {% for activity in recent_activity %}
+                        <div class="list-group-item">
+                            <h5 class="mb-1">{{ activity.subject }} - {{ activity.topic }}</h5>
+                            <p class="mb-1">{{ activity.activity_type }}</p>
+                            <small>{{ activity.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="text-center mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Home</a>
+    </div>
+</div>
+
+{% if has_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Subject Distribution Chart
+const subjectCtx = document.getElementById('subjectChart').getContext('2d');
+new Chart(subjectCtx, {
+    type: 'pie',
+    data: {
+        labels: {{ subject_stats.keys()|list|tojson }},
+        datasets: [{
+            data: {{ subject_stats.values()|list|tojson }},
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0'
+            ]
+        }]
+    }
+});
+
+// Activity Distribution Chart
+const activityCtx = document.getElementById('activityChart').getContext('2d');
+new Chart(activityCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ activity_stats.keys()|list|tojson }},
+        datasets: [{
+            label: 'Number of Sessions',
+            data: {{ activity_stats.values()|list|tojson }},
+            backgroundColor: '#36A2EB'
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %} 
